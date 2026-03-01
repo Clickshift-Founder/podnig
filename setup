@@ -1,0 +1,74 @@
+podnig/
+│
+├── .gitignore                         ← FILE 01
+│
+└── client/
+    ├── index.html                     ← FILE 02
+    ├── package.json                   ← FILE 03
+    ├── tsconfig.json                  ← FILE 04
+    ├── tsconfig.node.json             ← FILE 05
+    ├── vite.config.ts                 ← FILE 06
+    ├── .env                           ← FILE 07  (you create this — never commit it)
+    ├── .env.example                   ← FILE 08
+    │
+    └── src/
+        ├── main.tsx                   ← FILE 09  (Vite entry — do not rename)
+        ├── vite-env.d.ts              ← FILE 10
+        │
+        ├── App.tsx                    ← FILE 11  ⭐ MAIN ROUTER (starts on home/marketplace)
+        │
+        ├── components/
+        │   ├── Navbar.tsx             ← FILE 12
+        │   └── index.tsx              ← FILE 13  (ProductCard, WalletCard, Modal, Toast, etc.)
+        │
+        ├── config/
+        │   └── api.ts                 ← FILE 14
+        │
+        ├── context/
+        │   ├── AuthContext.tsx        ← FILE 15
+        │   ├── CartContext.tsx        ← FILE 16
+        │   └── WalletContext.tsx      ← FILE 17
+        │
+        ├── hooks/
+        │   └── index.ts               ← FILE 18
+        │
+        ├── pages/
+        │   ├── auth/
+        │   │   ├── LoginPage.tsx      ← FILE 19
+        │   │   └── RegisterPage.tsx   ← FILE 20
+        │   ├── admin/
+        │   │   └── AdminDashboard.tsx ← FILE 21
+        │   ├── buyer/
+        │   │   └── BuyerApp.tsx       ← FILE 22  (public home + buyer pages)
+        │   └── seller/
+        │       └── SellerDashboard.tsx ← FILE 23
+        │
+        ├── services/
+        │   ├── api.ts                 ← FILE 24
+        │   ├── authService.ts         ← FILE 25
+        │   └── index.ts               ← FILE 26
+        │
+        ├── types/
+        │   ├── user.ts                ← FILE 27
+        │   ├── product.ts             ← FILE 28
+        │   └── index.ts               ← FILE 29
+        │
+        └── utils/
+            ├── mockData.ts            ← FILE 30
+            └── styles.ts              ← FILE 31
+    
+└── server/     ← create this AFTER frontend works
+    ├── controllers/
+    │   ├── authController.js
+    │   └── webhookController.js
+    ├── services/
+    │   ├── flutterwaveService.js
+    │   ├── escrowService.js
+    │   └── trustAndSafetyService.js
+    ├── jobs/
+    │   └── cronJobs.js
+    ├── prisma/
+    │   └── schema.prisma
+    ├── .env
+    ├── index.js
+    └── package.json

@@ -1,0 +1,383 @@
+// PODnig - Pay On Delivery Nigeria
+// Database: PostgreSQL via Supabase (free tier)
+// ORM: Prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ──────────────────────────────────────────
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PAID_IN_ESCROW
+  SELLER_CONFIRMED_DISPATCH
+  BUYER_CONFIRMED_DELIVERY
+  COMPLETED
+  DISPUTED
+  REFUNDED
+  CANCELLED
+}
+
+enum DisputeStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED_BUYER
+  RESOLVED_SELLER
+  CLOSED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+  ESCROW_LOCK
+  ESCROW_RELEASE
+  COMMISSION
+  WITHDRAWAL
+  REFUND
+  SPONSORED_LISTING
+}
+
+enum WithdrawalStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum BoostPlan {
+  STARTER   // ₦1,500 / 3 days
+  PRO       // ₦5,000 / 7 days
+  ELITE     // ₦15,000 / 30 days
+}
+
+// ─── USERS ──────────────────────────────────────────
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  phone           String?   @unique
+  passwordHash    String
+  role            Role      @default(BUYER)
+  firstName       String
+  lastName        String
+  avatar          String?
+  isEmailVerified Boolean   @default(false)
+  isPhoneVerified Boolean   @default(false)
+  isBanned        Boolean   @default(false)
+  banReason       String?
+  bannedAt        DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  wallet          Wallet?
+  sellerProfile   SellerProfile?
+  buyerOrders     Order[]        @relation("BuyerOrders")
+  notifications   Notification[]
+  reports         Report[]       @relation("ReporterReports")
+  reportedBy      Report[]       @relation("ReportedReports")
+  sessions        Session[]
+}
+
+// ─── WALLET ─────────────────────────────────────────
+model Wallet {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  balance         BigInt    @default(0)  // in kobo (1 NGN = 100 kobo)
+  escrowBalance   BigInt    @default(0)
+  totalEarned     BigInt    @default(0)
+  totalWithdrawn  BigInt    @default(0)
+  // Flutterwave Static Virtual Account
+  vaAccountNumber String?   @unique
+  vaBankName      String?
+  vaBankCode      String?
+  vaAccountName   String?
+  vaReference     String?   @unique  // FLW VA reference
+  vaCreatedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  transactions    Transaction[]
+  withdrawals     Withdrawal[]
+}
+
+// ─── SELLER PROFILE ──────────────────────────────────
+model SellerProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id])
+  storeName       String    @unique
+  storeSlug       String    @unique
+  storeDescription String?
+  storeLogo       String?
+  storeBanner     String?
+  isVerified      Boolean   @default(false)
+  verifiedAt      DateTime?
+  bvn             String?
+  nin             String?
+  bankName        String?
+  bankCode        String?
+  accountNumber   String?
+  accountName     String?
+  totalSales      Int       @default(0)
+  totalRevenue    BigInt    @default(0)
+  averageRating   Float     @default(0)
+  reportCount     Int       @default(0)  // auto-ban at 3
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  products        Product[]
+  sellerOrders    Order[]   @relation("SellerOrders")
+  reviews         Review[]
+  sponsoredListings SponsoredListing[]
+}
+
+// ─── PRODUCTS ────────────────────────────────────────
+model Product {
+  id              String    @id @default(cuid())
+  sellerId        String
+  seller          SellerProfile @relation(fields: [sellerId], references: [id])
+  name            String
+  slug            String    @unique
+  description     String
+  price           BigInt    // in kobo
+  comparePrice    BigInt?   // original/compare price
+  category        String
+  subcategory     String?
+  images          String[]  // array of image URLs (Supabase Storage)
+  stock           Int       @default(0)
+  sku             String?
+  weight          Float?    // for shipping calc
+  location        String
+  isActive        Boolean   @default(true)
+  isDeleted       Boolean   @default(false)
+  viewCount       Int       @default(0)
+  salesCount      Int       @default(0)
+  averageRating   Float     @default(0)
+  reviewCount     Int       @default(0)
+  tags            String[]
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  orderItems      OrderItem[]
+  reviews         Review[]
+  sponsoredListing SponsoredListing?
+
+  @@index([category])
+  @@index([sellerId])
+  @@index([isActive, isDeleted])
+}
+
+// ─── ORDERS ──────────────────────────────────────────
+model Order {
+  id              String      @id @default(cuid())
+  orderRef        String      @unique @default(cuid()) // POD-XXXX
+  buyerId         String
+  buyer           User        @relation("BuyerOrders", fields: [buyerId], references: [id])
+  sellerId        String
+  seller          SellerProfile @relation("SellerOrders", fields: [sellerId], references: [id])
+  status          OrderStatus @default(PENDING_PAYMENT)
+  subtotal        BigInt      // sum of items in kobo
+  commissionAmount BigInt     // 3% platform fee
+  totalAmount     BigInt      // subtotal + commission
+  escrowRef       String?     // internal escrow reference
+  paymentRef      String?     // Flutterwave payment reference
+  deliveryAddress Json        // { street, city, state, phone }
+  deliveryFee     BigInt      @default(0)
+  notes           String?
+  // Confirmation Timestamps
+  paidAt          DateTime?
+  dispatchedAt    DateTime?
+  deliveredAt     DateTime?
+  completedAt     DateTime?
+  cancelledAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items           OrderItem[]
+  dispute         Dispute?
+  review          Review?
+
+  @@index([buyerId])
+  @@index([sellerId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  order       Order    @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product  @relation(fields: [productId], references: [id])
+  quantity    Int
+  priceAtTime BigInt   // price when ordered (in kobo)
+  createdAt   DateTime @default(now())
+}
+
+// ─── ESCROW (internal ledger) ────────────────────────
+model EscrowEntry {
+  id          String   @id @default(cuid())
+  orderId     String   @unique
+  amount      BigInt   // in kobo
+  buyerWalletId String
+  sellerWalletId String
+  lockedAt    DateTime @default(now())
+  releasedAt  DateTime?
+  refundedAt  DateTime?
+  status      String   @default("LOCKED") // LOCKED | RELEASED | REFUNDED
+}
+
+// ─── TRANSACTIONS ────────────────────────────────────
+model Transaction {
+  id          String          @id @default(cuid())
+  walletId    String
+  wallet      Wallet          @relation(fields: [walletId], references: [id])
+  type        TransactionType
+  amount      BigInt          // in kobo
+  balanceBefore BigInt
+  balanceAfter  BigInt
+  reference   String?         // FLW ref or internal ref
+  description String
+  orderId     String?
+  metadata    Json?
+  createdAt   DateTime        @default(now())
+
+  @@index([walletId])
+}
+
+// ─── WITHDRAWALS ─────────────────────────────────────
+model Withdrawal {
+  id          String           @id @default(cuid())
+  walletId    String
+  wallet      Wallet           @relation(fields: [walletId], references: [id])
+  amount      BigInt           // in kobo
+  bankName    String
+  bankCode    String
+  accountNumber String
+  accountName String
+  status      WithdrawalStatus @default(PENDING)
+  flwRef      String?
+  failureReason String?
+  requestedAt DateTime         @default(now())
+  processedAt DateTime?
+
+  @@index([walletId])
+}
+
+// ─── DISPUTES ────────────────────────────────────────
+model Dispute {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  order       Order         @relation(fields: [orderId], references: [id])
+  openedBy    String        // userId
+  reason      String
+  evidence    String[]      // image URLs
+  status      DisputeStatus @default(OPEN)
+  adminNotes  String?
+  resolution  String?
+  resolvedAt  DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  messages    DisputeMessage[]
+}
+
+model DisputeMessage {
+  id          String   @id @default(cuid())
+  disputeId   String
+  dispute     Dispute  @relation(fields: [disputeId], references: [id])
+  senderId    String
+  message     String
+  attachments String[]
+  createdAt   DateTime @default(now())
+}
+
+// ─── REVIEWS ─────────────────────────────────────────
+model Review {
+  id          String        @id @default(cuid())
+  orderId     String        @unique
+  order       Order         @relation(fields: [orderId], references: [id])
+  productId   String
+  product     Product       @relation(fields: [productId], references: [id])
+  sellerId    String
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  buyerId     String
+  rating      Int           // 1-5
+  comment     String?
+  images      String[]
+  isVerified  Boolean       @default(true) // only from actual buyers
+  createdAt   DateTime      @default(now())
+}
+
+// ─── REPORTS ──────────────────────────────────────────
+model Report {
+  id          String   @id @default(cuid())
+  reporterId  String
+  reporter    User     @relation("ReporterReports", fields: [reporterId], references: [id])
+  reportedId  String   // seller userId
+  reported    User     @relation("ReportedReports", fields: [reportedId], references: [id])
+  reason      String
+  details     String?
+  orderId     String?
+  status      String   @default("PENDING") // PENDING | REVIEWED | DISMISSED
+  createdAt   DateTime @default(now())
+}
+
+// ─── SPONSORED LISTINGS ──────────────────────────────
+model SponsoredListing {
+  id          String    @id @default(cuid())
+  productId   String    @unique
+  product     Product   @relation(fields: [productId], references: [id])
+  sellerId    String
+  seller      SellerProfile @relation(fields: [sellerId], references: [id])
+  plan        BoostPlan
+  amount      BigInt    // amount paid in kobo
+  startDate   DateTime  @default(now())
+  endDate     DateTime
+  isActive    Boolean   @default(true)
+  impressions Int       @default(0)
+  clicks      Int       @default(0)
+  paymentRef  String?
+  createdAt   DateTime  @default(now())
+
+  @@index([isActive, endDate])
+}
+
+// ─── NOTIFICATIONS ────────────────────────────────────
+model Notification {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  title       String
+  message     String
+  type        String   // PAYMENT | ORDER | ESCROW | DISPUTE | SYSTEM
+  isRead      Boolean  @default(false)
+  data        Json?    // extra context
+  createdAt   DateTime @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ─── SESSIONS ─────────────────────────────────────────
+model Session {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  token       String   @unique
+  deviceInfo  String?
+  ipAddress   String?
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([token])
+}
