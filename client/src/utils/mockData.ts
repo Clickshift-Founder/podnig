@@ -1,0 +1,121 @@
+// src/utils/mockData.ts
+import { Product } from '../types/product';
+
+// ─── Category emoji map ───────────────────────────────────────────────────────
+export const PRODUCT_EMOJIS: Record<string, string> = {
+  Electronics: '📱',
+  Fashion: '👘',
+  Beauty: '🧴',
+  Home: '🏠',
+  Food: '🍲',
+  Sports: '⚽',
+  Books: '📚',
+  Automotive: '🚗',
+};
+
+// ─── Mock products ────────────────────────────────────────────────────────────
+export const MOCK_PRODUCTS: Product[] = [
+  {
+    id: '1', sellerId: 's1', slug: 'samsung-a55',
+    seller: { storeName: 'TechNaija Store', storeSlug: 'technaija', isVerified: true, averageRating: 4.9, user: { firstName: 'Emeka', lastName: 'Obi' } },
+    name: 'Samsung Galaxy A55 (256GB)',
+    description: 'Brand new sealed Samsung Galaxy A55, 256GB storage, 8GB RAM. 1 year warranty. Fast charge support.',
+    price: 385000, comparePrice: 410000,
+    category: 'Electronics', images: [], stock: 8, location: 'Ikeja, Lagos',
+    isActive: true, viewCount: 1240, salesCount: 89, averageRating: 4.9, reviewCount: 89,
+    tags: ['samsung', 'android', 'smartphone'], createdAt: '2026-01-15',
+    sponsoredListing: { plan: 'PRO', isActive: true },
+  },
+  {
+    id: '2', sellerId: 's2', slug: 'leather-sneakers',
+    seller: { storeName: "Kunle's Kicks", storeSlug: 'kunle-kicks', isVerified: true, averageRating: 4.8, user: { firstName: 'Kunle', lastName: 'Adams' } },
+    name: 'Premium Leather Sneakers',
+    description: 'Genuine leather sneakers, handcrafted. Available in sizes 39-45.',
+    price: 28500, comparePrice: 35000,
+    category: 'Fashion', images: [], stock: 15, location: 'Lagos Island',
+    isActive: true, viewCount: 890, salesCount: 142, averageRating: 4.8, reviewCount: 142,
+    tags: ['sneakers', 'leather', 'shoes'], createdAt: '2026-01-20',
+    sponsoredListing: null,
+  },
+  {
+    id: '3', sellerId: 's3', slug: 'shea-butter-500ml',
+    seller: { storeName: 'NaturalNG Beauty', storeSlug: 'naturalng', isVerified: true, averageRating: 4.7, user: { firstName: 'Fatima', lastName: 'Bello' } },
+    name: 'Organic Shea Butter 500ml',
+    description: 'Pure unrefined shea butter, cold-pressed. No additives or preservatives.',
+    price: 4200, comparePrice: 5000,
+    category: 'Beauty', images: [], stock: 200, location: 'Abuja',
+    isActive: true, viewCount: 3200, salesCount: 508, averageRating: 4.7, reviewCount: 508,
+    tags: ['shea', 'organic', 'skincare'], createdAt: '2026-01-10',
+    sponsoredListing: { plan: 'STARTER', isActive: true },
+  },
+  {
+    id: '4', sellerId: 's4', slug: 'solar-generator-300w',
+    seller: { storeName: 'GreenPower NG', storeSlug: 'greenpower', isVerified: true, averageRating: 4.7, user: { firstName: 'Chidi', lastName: 'Okonkwo' } },
+    name: 'Portable Solar Generator 300W',
+    description: 'Power your home during NEPA outages. 300W solar generator with 2x USB, 1x AC outlet.',
+    price: 145000, comparePrice: 180000,
+    category: 'Electronics', images: [], stock: 12, location: 'Port Harcourt',
+    isActive: true, viewCount: 2100, salesCount: 67, averageRating: 4.7, reviewCount: 67,
+    tags: ['solar', 'generator', 'power'], createdAt: '2026-01-25',
+    sponsoredListing: { plan: 'ELITE', isActive: true },
+  },
+  {
+    id: '5', sellerId: 's5', slug: 'ankara-dashiki',
+    seller: { storeName: 'Mama Bisi Fabrics', storeSlug: 'mama-bisi', isVerified: false, averageRating: 4.6, user: { firstName: 'Bisi', lastName: 'Akinwande' } },
+    name: 'Ankara Dashiki Set (Men)',
+    description: 'Authentic Ankara fabric dashiki set. Top + trousers. Available in S, M, L, XL, XXL.',
+    price: 12500, comparePrice: undefined,
+    category: 'Fashion', images: [], stock: 40, location: 'Balogun Market, Lagos',
+    isActive: true, viewCount: 1500, salesCount: 267, averageRating: 4.6, reviewCount: 267,
+    tags: ['ankara', 'dashiki', 'traditional'], createdAt: '2026-02-01',
+    sponsoredListing: null,
+  },
+  {
+    id: '6', sellerId: 's6', slug: 'electric-rice-cooker',
+    seller: { storeName: 'HomeEssentials NG', storeSlug: 'homeessentials', isVerified: true, averageRating: 4.4, user: { firstName: 'Grace', lastName: 'Nwosu' } },
+    name: 'Electric Rice Cooker 5L',
+    description: 'Non-stick 5L rice cooker with keep-warm function. Perfect for family meals.',
+    price: 18500, comparePrice: 22000,
+    category: 'Home', images: [], stock: 25, location: 'Surulere, Lagos',
+    isActive: true, viewCount: 740, salesCount: 195, averageRating: 4.4, reviewCount: 195,
+    tags: ['rice cooker', 'kitchen', 'appliance'], createdAt: '2026-02-05',
+    sponsoredListing: null,
+  },
+  {
+    id: '7', sellerId: 's7', slug: 'jollof-spice-pack',
+    seller: { storeName: 'SpiceNaija', storeSlug: 'spicenaija', isVerified: true, averageRating: 4.8, user: { firstName: 'Ngozi', lastName: 'Eze' } },
+    name: 'Premium Jollof Spice Pack (12 varieties)',
+    description: 'Authentic Nigerian spice pack — suya, jollof, egusi, ogiri, and more. Direct from the farm.',
+    price: 3500, comparePrice: 4500,
+    category: 'Food', images: [], stock: 500, location: 'Onitsha, Anambra',
+    isActive: true, viewCount: 4100, salesCount: 892, averageRating: 4.8, reviewCount: 892,
+    tags: ['spice', 'food', 'jollof', 'naija'], createdAt: '2026-02-10',
+    sponsoredListing: { plan: 'PRO', isActive: true },
+  },
+  {
+    id: '8', sellerId: 's8', slug: 'nike-air-force-replica',
+    seller: { storeName: 'StepUp Footwear', storeSlug: 'stepup', isVerified: true, averageRating: 4.5, user: { firstName: 'Tunde', lastName: 'Bakare' } },
+    name: 'Classic White Canvas Sneakers',
+    description: 'High-quality canvas sneakers. Clean all-white design. Sizes 38-46. Unisex.',
+    price: 8900, comparePrice: 12000,
+    category: 'Fashion', images: [], stock: 60, location: 'Yaba, Lagos',
+    isActive: true, viewCount: 2200, salesCount: 340, averageRating: 4.5, reviewCount: 340,
+    tags: ['sneakers', 'canvas', 'white', 'unisex'], createdAt: '2026-02-12',
+    sponsoredListing: null,
+  },
+];
+
+// ─── Mock orders ──────────────────────────────────────────────────────────────
+export const MOCK_ORDERS = [
+  {
+    id: 'o1', orderRef: 'POD-2847', buyerId: 'u1',
+    buyer: { firstName: 'Amaka', lastName: 'Obi', email: 'amaka@test.com' },
+    sellerId: 's1', seller: { storeName: 'TechNaija Store' },
+    status: 'PAID_IN_ESCROW' as const,
+    subtotal: 385000, commissionAmount: 11550, totalAmount: 396550,
+    deliveryAddress: { street: '15 Allen Avenue', city: 'Ikeja', state: 'Lagos', phone: '08012345678' },
+    deliveryFee: 0,
+    items: [{ id: 'i1', productId: '1', product: { name: 'Samsung Galaxy A55', images: [] }, quantity: 1, priceAtTime: 385000 }],
+    paidAt: '2026-02-24T10:00:00Z', createdAt: '2026-02-24T09:50:00Z',
+  },
+];
